@@ -1,0 +1,67 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/api/auth",
+      "DownstreamPathTemplate": "/api/v1.0/auth",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "user-api", "Port": 8080}]
+    },
+    {
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamPathTemplate": "/api/v1.0/auth/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "user-api", "Port": 8080}]
+    },
+    {
+      "UpstreamPathTemplate": "/api/users",
+      "DownstreamPathTemplate": "/api/users",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "user-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    },
+    {
+      "UpstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamPathTemplate": "/api/users/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "user-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    },
+    {
+      "UpstreamPathTemplate": "/api/notes",
+      "DownstreamPathTemplate": "/api/notes",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "notes-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    },
+    {
+      "UpstreamPathTemplate": "/api/notes/{everything}",
+      "DownstreamPathTemplate": "/api/notes/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "notes-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    },
+    {
+      "UpstreamPathTemplate": "/api/labels",
+      "DownstreamPathTemplate": "/api/labels",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "notes-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    },
+    {
+      "UpstreamPathTemplate": "/api/labels/{everything}",
+      "DownstreamPathTemplate": "/api/labels/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"],
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{"Host": "notes-api", "Port": 8080}],
+      "AuthenticationOptions": {"AuthenticationProviderKey": "Bearer"}
+    }
+  ],
+  "GlobalConfiguration": {"BaseUrl": "http://localhost:8080"}
+}

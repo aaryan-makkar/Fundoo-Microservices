@@ -1,0 +1,99 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: fundoo_users
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d fundoo_users"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  user-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT: Fundoo.User.Api/Fundoo.User.Api.csproj
+        ASSEMBLY: Fundoo.User.Api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__UserDb: Host=postgres;Port=5432;Database=fundoo_users;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__Issuer: fundoo-user-api
+      Jwt__Audience: fundoo-clients
+      Jwt__ExpiryMinutes: 30
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env}
+      Notification__BaseUrl: http://notification-api:8080/
+      Notification__ApiKey: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      notification-api:
+        condition: service_started
+    restart: unless-stopped
+
+  notes-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT: Fundoo.Notes.Api/Fundoo.Notes.Api.csproj
+        ASSEMBLY: Fundoo.Notes.Api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__NotesDb: Host=postgres;Port=5432;Database=fundoo_notes;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      Jwt__Issuer: fundoo-user-api
+      Jwt__Audience: fundoo-clients
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT: Fundoo.Notification.Api/Fundoo.Notification.Api.csproj
+        ASSEMBLY: Fundoo.Notification.Api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Notification__ApiKey: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY in .env}
+      Smtp__Host: ${SMTP_HOST:-smtp.gmail.com}
+      Smtp__Port: ${SMTP_PORT:-587}
+      Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
+      Smtp__FromName: ${SMTP_FROM_NAME:-Fundoo}
+      Smtp__FromAddress: ${SMTP_FROM_ADDRESS:?Set SMTP_FROM_ADDRESS in .env}
+      Smtp__Username: ${SMTP_USERNAME:?Set SMTP_USERNAME in .env}
+      Smtp__Password: ${SMTP_PASSWORD:?Set SMTP_PASSWORD in .env}
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PROJECT: Fundoo.ApiGateway/Fundoo.ApiGateway.csproj
+        ASSEMBLY: Fundoo.ApiGateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 8080
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env}
+    volumes:
+      - ./deploy/ocelot.docker.json:/app/ocelot.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-api
+      - notes-api
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
