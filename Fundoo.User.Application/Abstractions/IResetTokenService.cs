@@ -1,11 +1,13 @@
-﻿using Fundoo.User.Domain.Entities;
+﻿namespace Fundoo.User.Application.Abstractions;
 
-namespace Fundoo.User.Application.Abstractions;
-
-public record ResetTokenInfo(Guid UserId, string Stamp);
+public record GeneratedResetToken(
+    string RawToken,
+    string TokenHash
+);
 
 public interface IResetTokenService
 {
-    string CreatePasswordResetToken(AppUser user);
-    Task<ResetTokenInfo?> ValidatePasswordResetTokenAsync(string token);
+    GeneratedResetToken GenerateToken();
+
+    string HashToken(string token);
 }

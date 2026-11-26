@@ -16,7 +16,16 @@ public class LoginRequest
     [Required] public string Password { get; set; } = "";
 }
 
-public record TokenResponse(string AccessToken);
+public record TokenResponse(
+    string AccessToken,
+    string RefreshToken,
+    Guid SessionId
+);
+
+public class RefreshRequest
+{
+    [Required] public string RefreshToken { get; set; } = "";
+}
 public class ForgotPasswordRequest
 {
     [Required, EmailAddress, MaxLength(256)] public string Email { get; set; } = "";

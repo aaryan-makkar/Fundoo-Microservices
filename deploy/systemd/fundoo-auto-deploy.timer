@@ -1,0 +1,11 @@
+[Unit]
+Description=Check GitHub main for Fundoo updates every minute
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=60s
+Persistent=true
+Unit=fundoo-auto-deploy.service
+
+[Install]
+WantedBy=timers.target

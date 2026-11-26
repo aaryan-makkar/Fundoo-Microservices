@@ -40,6 +40,10 @@ public static class DependencyInjection
     poolSize: 128);
 
         services.AddSingleton(jwt);
+        services.AddSingleton(new AuthTokenOptions
+        {
+            RefreshTokenDays = jwt.RefreshTokenDays
+        });
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();

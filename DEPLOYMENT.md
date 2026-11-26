@@ -19,7 +19,7 @@ Connect to the machine using the SSH private key already on your computer (do no
 
 ## 2. Put the source on the VM
 
-The deployment files are currently local and uncommitted. Once the intended project changes are committed to your Git remote, on the VM run:
+The deployment source is stored in GitHub. On a fresh VM, run:
 
 ```bash
 git clone https://github.com/aaryan-makkar/Fundoo-Microservices.git
@@ -61,6 +61,13 @@ From your computer, open `http://<VM-public-IP>:8080/health`. The API routes are
 ## Current project-specific notes
 
 - PostgreSQL is the only database used by this source; the guide's Redis steps do not match this checkout.
-- The User API has an EF migration, but the Notes API has no migrations. The supplied init SQL creates the tables the Notes repositories query and the initial User schema. Review schema changes against the application before reusing this for upgrades.
-- This Compose setup is a first deploy path, not the guide's K3s/Jenkins CI/CD endpoint. Keep PostgreSQL's volume backed up. Jenkins and K3s can be introduced after the first working deployment.
-- Deployment has not been run from this workspace because the VM is a remote Azure resource and no SSH session or registry credentials were provided.
+- The User API stores sessions in `UserSessions`; the supplied init SQL creates that table and its indexes for fresh databases. PostgreSQL skips init scripts when the data volume already exists. Apply the session schema once to an existing volume with `sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d fundoo_users' < deploy/postgres-init/02-user-sessions.sql`. The User API does not apply EF migrations automatically. The Notes API has no EF migrations; the supplied init SQL creates the tables its repositories query.
+- The Notes API calls the User API to validate the backing session for each authenticated request. Keep `UserApi__BaseUrl` set to the private User API address; if session validation is unavailable, Notes API returns `503` rather than accepting an unverified session.
+- The live VM uses Docker Compose; K3s and Jenkins are not part of this deployment. Keep PostgreSQL's volume backed up.
+- The VM's automatic deploy watcher is configured independently of the repository files and checks GitHub `main` every minute.
+
+## Automatic deployment from GitHub
+
+The Azure VM checks `origin/main` once per minute with a systemd timer. When it finds a new commit, it fetches the code, rebuilds the Compose images, restarts the services, and checks `/health`. If the build or health check fails, it restores the previous commit and rebuilds that version. The watcher refuses to deploy if the VM checkout has uncommitted changes. The VM's `.env` file and PostgreSQL volume remain outside Git.
+
+Install `deploy/auto-deploy.sh` as `/usr/local/sbin/fundoo-auto-deploy`, install the service and timer files under `/etc/systemd/system/`, then run `sudo systemctl daemon-reload && sudo systemctl enable --now fundoo-auto-deploy.timer`. Check runs with `sudo journalctl -u fundoo-auto-deploy.service` and timer state with `systemctl list-timers fundoo-auto-deploy.timer`.

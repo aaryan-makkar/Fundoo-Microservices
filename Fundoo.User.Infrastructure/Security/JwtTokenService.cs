@@ -9,21 +9,44 @@ namespace Fundoo.User.Infrastructure.Security;
 
 public class JwtTokenService(JwtOptions options) : ITokenService
 {
-    public string CreateAccessToken(AppUser user)
+    public string CreateAccessToken(AppUser user, Guid sessionId)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SigningKey));
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(options.SigningKey));
+
+        var now = DateTime.UtcNow;
+
         var descriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email)
+
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+
+                new Claim("sid", sessionId.ToString()),
+
+                new Claim(
+                    JwtRegisteredClaimNames.Iat,
+                    EpochTime.GetIntDate(now).ToString(),
+                    ClaimValueTypes.Integer64)
             }),
+
             Issuer = options.Issuer,
+
             Audience = options.Audience,
-            Expires = DateTime.UtcNow.AddMinutes(options.ExpiryMinutes),
-            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+
+            IssuedAt = now,
+
+            Expires = now.AddMinutes(options.ExpiryMinutes),
+
+            SigningCredentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256)
         };
+
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 }

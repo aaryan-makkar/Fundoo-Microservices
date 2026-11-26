@@ -51,9 +51,12 @@ services:
       Jwt__Issuer: fundoo-user-api
       Jwt__Audience: fundoo-clients
       Jwt__SigningKey: ${JWT_SIGNING_KEY:?Set JWT_SIGNING_KEY in .env}
+      UserApi__BaseUrl: http://user-api:8080/
     depends_on:
       postgres:
         condition: service_healthy
+      user-api:
+        condition: service_started
     restart: unless-stopped
 
   notification-api:

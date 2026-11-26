@@ -4,5 +4,5 @@ namespace Fundoo.User.Application.Abstractions;
 
 public interface ITokenService
 {
-    string CreateAccessToken(AppUser user);
+    string CreateAccessToken(AppUser user, Guid sessionId);
 }

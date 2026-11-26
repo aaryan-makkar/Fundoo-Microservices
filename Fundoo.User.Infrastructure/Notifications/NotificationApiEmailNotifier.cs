@@ -21,7 +21,14 @@ public class NotificationApiEmailNotifier(HttpClient http, ILogger<NotificationA
             if (response.IsSuccessStatusCode)
                 logger.LogInformation("Password reset email request accepted by Notification service");
             else
-                logger.LogWarning("Notification service returned {StatusCode} for a password reset email", (int)response.StatusCode);
+            {
+                var error = await response.Content.ReadAsStringAsync(ct);
+
+                logger.LogError(
+                    "Notification failed. Status: {StatusCode}, Response: {Response}",
+                    (int)response.StatusCode,
+                    error);
+            }
         }
         catch (Exception ex) when ((ex is HttpRequestException || ex is TaskCanceledException) && !ct.IsCancellationRequested)
         {

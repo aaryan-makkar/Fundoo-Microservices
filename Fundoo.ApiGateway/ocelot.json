@@ -2,7 +2,7 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/auth",
-      "DownstreamPathTemplate": "/api/auth",
+      "DownstreamPathTemplate": "/api/v1.0/auth",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
@@ -22,7 +22,7 @@
     },
     {
       "UpstreamPathTemplate": "/api/auth/{everything}",
-      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamPathTemplate": "/api/v1.0/auth/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [

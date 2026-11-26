@@ -1,0 +1,13 @@
+[Unit]
+Description=Deploy Fundoo when GitHub main changes
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=azureuser
+Group=azureuser
+WorkingDirectory=/home/azureuser/Fundoo-Microservices
+ExecStart=/usr/local/sbin/fundoo-auto-deploy
+Environment=HOME=/home/azureuser
+TimeoutStartSec=30min
